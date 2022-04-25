@@ -2,10 +2,12 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+.idea/
+*.mat
+pics/
 # C extensions
 *.so
-
+Datasets/
 # Distribution / packaging
 .Python
 build/
@@ -32,7 +34,7 @@ MANIFEST
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
-
+.idea/
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
@@ -127,3 +129,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+#datasets
+EShanghai-EHangzhou.mat
+DPaviaU-DPaviaC.mat
+
+*.mat
