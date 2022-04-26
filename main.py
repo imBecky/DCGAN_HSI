@@ -16,27 +16,17 @@ plt.title('Source')
 plt.show()
 
 
-generator_s = make_generator_model()
-print(generator_s.summary())
-generator_t = make_generator_model()
-discriminator_t = make_discriminator_model()
-discriminator_s = make_discriminator_model()
-discriminator_domain = make_discriminator_domain_model()
-encoder_s = make_encoder_model()
-encoder_t = make_encoder_model()
+generator = make_generator_model()
+discriminator = make_discriminator_model()
 classifier = make_classifier_model()
 
 
-train(generator_s, generator_t,
-      discriminator_t, discriminator_s,
-      discriminator_domain,
-      encoder_s, encoder_t, classifier,
+train(generator, discriminator, classifier,
       source_train_ds, target_train_ds,
-      source_test_ds, target_test_ds,
-      EPOCHS)
+      target_test_ds, EPOCHS)
 
 for HSI in target_val_ds.as_numpy_iterator():
-    feature = encoder_t(HSI['data'], training=False)
-    classify_output = classifier(feature)
+    data = HSI['data']
+    classify_output = classifier(data)
     print(classifier_loss(classify_output, HSI['label']))
 
