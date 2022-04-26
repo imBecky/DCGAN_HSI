@@ -3,6 +3,7 @@ from Model import *
 from utils import *
 import os
 
+
 # adversarial training block
 @tf.function
 def GAN_train_step(generator, discriminator,
@@ -46,8 +47,14 @@ def classify_train_step(generator, classifier,
 
 
 def train(generator, discriminator, classifier,
-          source_ds, target_ds, target_test_ds,
+          source_ds, target_ds,
+          source_test_ds,
+          target_test_ds,
           epochs):
+    acc = []
+    gen_loss = []
+    disc_loss = []
+    cls_loss = []
     for epoch in range(epochs):
         start = time.time()
         for source_batch in source_ds.as_numpy_iterator():
@@ -55,7 +62,12 @@ def train(generator, discriminator, classifier,
                 GAN_train_step(generator, discriminator,
                                source_batch, target_batch)
         duration = time.time() - start
-        print('duration for epoch {} is {}s'.format(epoch+1, duration))
+        print('duration for epoch {} is {}s'.format(epoch + 1, duration))
+        acc, gen_loss, disc_loss, cls_loss = plot_acc_loss(acc, gen_loss, disc_loss, cls_loss,
+                                                           generator_loss, discriminator_loss, classifier_loss,
+                                                           source_test_ds, target_test_ds,
+                                                           generator, discriminator, classifier,
+                                                           epoch)
         if epoch % 15 == 0:
             generate_and_save_Images(generator, epoch,
                                      source_ds.as_numpy_iterator().next()['data'])
@@ -64,4 +76,7 @@ def train(generator, discriminator, classifier,
             for target_batch in target_ds.as_numpy_iterator():
                 classify_train_step(generator, classifier,
                                     source_batch, target_batch)
+        acc, gen_loss, disc_loss, cls_loss = plot_acc_loss(acc, gen_loss, disc_loss, cls_loss,
+                                                           generator_loss, discriminator_loss, classifier_loss,
+                                                           source_test_ds, target_test_ds, EPOCHS + epoch)
         calculate_acc(target_test_ds, classifier, epoch)

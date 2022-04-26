@@ -4,20 +4,12 @@ Created on Tue May 14 12:16:11 2019
 @author: viryl
 """
 from __future__ import print_function, division
-import torch
-import os
-import scipy.io
 import numpy as np
 import matplotlib.pyplot as plt
-from torch.utils.data import Dataset
-from sklearn.decomposition import PCA
-from sklearn import preprocessing
-import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-from scipy.io import loadmat
-import spectral as spy
-import tensorflow as tf
 from param import *
+
+cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 
 
 def gen_dataset_from_dict(file_dict, Val=False):
@@ -72,5 +64,49 @@ def calculate_acc(target_test_ds,
     accuracy_t = tf.metrics.Accuracy()
     accuracy_t.update_state(y_true=target_label,
                             y_pred=prediction_t)
-    print('Target accuracy for epoch {} is'.format(epoch+1),
-          '{}%'.format(accuracy_t.result().numpy()*100))
+    print('Target accuracy for epoch {} is'.format(epoch + 1),
+          '{}%'.format(accuracy_t.result().numpy() * 100))
+
+
+def plot_acc_loss(acc, gen_loss, disc_loss, cls_loss,
+                  generator_loss, discriminator_loss, classifier_loss,
+                  source_test_ds, target_test_ds,
+                  generator, discriminator, classifier,
+                  epoch):
+    g_loss, d_loss, c_loss, a = [], [], [], []
+    for source_test_batch in source_test_ds.as_numpy_iterator():
+        for target_test_batch in target_test_ds.as_numpy_iterator():
+            X_s, Y_s = get_data_from_batch(source_test_batch)
+            X_t, Y_t = get_data_from_batch(target_test_batch)
+            generated_target = generator(X_s, training=False)
+            real_decision = discriminator(X_t, training=False)
+            fake_decision = discriminator(generated_target, training=False)
+            prediction = classifier(X_t, training=False)
+            accuracy_t = tf.metrics.Accuracy()
+            accuracy_t.update_state(y_true=Y_t,
+                                    y_pred=prediction)
+            a.append(accuracy_t.result().numpy())
+            c_loss.append(classifier_loss(prediction, Y_t).numpy())
+            g_loss.append(generator_loss(fake_decision).numpy())
+            d_loss.append(discriminator_loss(real_decision, fake_decision).numpy())
+    a = np.average(a)
+    acc.append(a)
+    cls_loss.append(np.average(c_loss))
+    gen_loss.append(np.average(g_loss))
+    disc_loss.append(np.average(d_loss))
+    epochs_range = range(epoch+1)
+    print(epochs_range)
+
+    plt.subplot(1, 2, 1)
+    plt.plot(epochs_range, gen_loss, label='Generator_loss')
+    plt.plot(epochs_range, disc_loss, label='Discriminator_loss')
+    plt.plot(epochs_range, cls_loss, label='Classifier_loss')
+    plt.legend(loc='lower right')
+    plt.title('Generator and discriminator loss')
+
+    plt.subplot(1, 2, 2)
+    plt.plot(epochs_range, acc, label='Test accuracy')
+    plt.legend(loc='upper right')
+    plt.title('Training and Validation Loss')
+    plt.show()
+    return acc, gen_loss, disc_loss, cls_loss
