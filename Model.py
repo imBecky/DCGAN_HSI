@@ -40,15 +40,15 @@ def make_generator_model():
 
     model.add(layers.Reshape((504, 72)))
 
-    model.add(layers.Conv1DTranspose(144, 6, strides=1, padding='same', use_bias=False))
+    model.add(layers.Conv1D(144, 6, strides=1, padding='same', use_bias=False))
     model.add(layers.BatchNormalization())
     model.add(layers.LeakyReLU())
 
-    model.add(layers.Conv1DTranspose(72, 6, strides=2, padding='same', use_bias=False))
+    model.add(layers.Conv1D(72, 6, strides=2, padding='same', use_bias=False))
     model.add(layers.BatchNormalization())
     model.add(layers.LeakyReLU())
 
-    model.add(layers.Conv1DTranspose(36, 6, strides=2, padding='same', use_bias=False, activation='tanh'))
+    model.add(layers.Conv1D(36, 6, strides=2, padding='same', use_bias=False, activation='tanh'))
     model.add(layers.Dropout(0.3))
     model.add(layers.Flatten())
     model.add(layers.Dense(72))

@@ -71,6 +71,9 @@ def train(generator, discriminator, classifier,
         if epoch % 15 == 0:
             generate_and_save_Images(generator, epoch,
                                      source_ds.as_numpy_iterator().next()['data'])
+    patience = PATIENCE
+    wait = 0
+    best = 0
     for epoch in range(epochs):
         for source_batch in source_ds.as_numpy_iterator():
             for target_batch in target_ds.as_numpy_iterator():
@@ -78,5 +81,14 @@ def train(generator, discriminator, classifier,
                                     source_batch, target_batch)
         acc, gen_loss, disc_loss, cls_loss = plot_acc_loss(acc, gen_loss, disc_loss, cls_loss,
                                                            generator_loss, discriminator_loss, classifier_loss,
-                                                           source_test_ds, target_test_ds, EPOCHS + epoch)
-        calculate_acc(target_test_ds, classifier, epoch)
+                                                           source_test_ds, target_test_ds,
+                                                           generator, discriminator, classifier,
+                                                           EPOCHS + epoch, gan=False)
+        train_acc = calculate_acc(target_test_ds, classifier, epoch)
+        if epoch >= 0:
+            wait += 1
+            if train_acc > best:
+                best = train_acc
+                wait = 0
+            if wait >= patience:
+                break

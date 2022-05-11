@@ -24,7 +24,12 @@ train(generator, discriminator, classifier,
       source_test_ds, target_test_ds,
       EPOCHS)
 
+val_accuracy = tf.keras.metrics.CategoricalAccuracy('val_accuracy')
+acc = []
 for HSI in target_val_ds.as_numpy_iterator():
     data = HSI['data']
     classify_output = classifier(data)
     print(classifier_loss(classify_output, HSI['label']))
+    val_accuracy(HSI['label'], classify_output)
+    acc.append(val_accuracy.result())
+print('whole val acc:{:.2f}%'.format(np.average(acc)*100))

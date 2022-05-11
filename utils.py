@@ -62,17 +62,19 @@ def calculate_acc(target_test_ds,
     target_data, target_label = get_data_from_batch(target_batch)
     prediction_t = classifier(target_data, training=False)
     accuracy_t = tf.metrics.Accuracy()
+    acc = accuracy_t.result()
     accuracy_t.update_state(y_true=target_label,
                             y_pred=prediction_t)
     print('Target accuracy for epoch {} is'.format(epoch + 1),
           '{}%'.format(accuracy_t.result().numpy() * 100))
+    return acc
 
 
 def plot_acc_loss(acc, gen_loss, disc_loss, cls_loss,
                   generator_loss, discriminator_loss, classifier_loss,
                   source_test_ds, target_test_ds,
                   generator, discriminator, classifier,
-                  epoch):
+                  epoch, gan=True):
     g_loss, d_loss, c_loss, a = [], [], [], []
     for source_test_batch in source_test_ds.as_numpy_iterator():
         for target_test_batch in target_test_ds.as_numpy_iterator():
@@ -95,18 +97,17 @@ def plot_acc_loss(acc, gen_loss, disc_loss, cls_loss,
     gen_loss.append(np.average(g_loss))
     disc_loss.append(np.average(d_loss))
     epochs_range = range(epoch+1)
-    print(epochs_range)
 
-    plt.subplot(1, 2, 1)
-    plt.plot(epochs_range, gen_loss, label='Generator_loss')
-    plt.plot(epochs_range, disc_loss, label='Discriminator_loss')
-    plt.plot(epochs_range, cls_loss, label='Classifier_loss')
-    plt.legend(loc='lower right')
-    plt.title('Generator and discriminator loss')
-
-    plt.subplot(1, 2, 2)
-    plt.plot(epochs_range, acc, label='Test accuracy')
-    plt.legend(loc='upper right')
-    plt.title('Training and Validation Loss')
+    if gan:
+        plt.subplot(1, 1, 1)
+        plt.plot(epochs_range, gen_loss, label='Generator_loss')
+        plt.plot(epochs_range, disc_loss, label='Discriminator_loss')
+        plt.legend(loc='lower right')
+        plt.title('Generator and discriminator loss')
+    else:
+        plt.subplot(1, 1, 1)
+        plt.plot(epochs_range, acc, label='Test accuracy')
+        plt.legend(loc='upper right')
+        plt.title('Training and Validation Loss')
     plt.show()
     return acc, gen_loss, disc_loss, cls_loss
